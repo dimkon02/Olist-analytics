@@ -7,6 +7,7 @@
     - `customer_unique_id` has 96,096 distinct values, it is used to identify the customer.
     - `customer_id` is used to identify the a per order image created for every purchase.
     - The 3,345 gap is extra records belonging to people who ordered more than once (~3.4%).
+    - if we need to look for repear purchase we need to group by `customer_unique_id`
 
 - `Orders` : has 99,441 rows.
     - **PK**: `order_id` has 99,441 distinct values.
@@ -29,21 +30,35 @@
                     SUM will be same either way
                     Average will not 
     - OPEN: does an order containing nothing count as an order worth 0?
+    - `price` and `freigh_values` are money so we will use **`Numeric` not `floating point`**
 
 - `Payments` : has 103,886 rows.
     - **PK**: `order_id`, `payment_sequential` has 103,886 distinct values.
     - `order_id` has 99,440 distinct values, it is FK to `Orders` 1:many.
     - There are 99440 values in Payments[order_id] but Orders[order_id] has 99441
-    - The missing orders is {'bfbd0f9bdef84302105ad712db648a6c'}
+    - The missing orders is {'bfbd0f9bdef84302105ad712db648a6c'} (has no payment)
     - It was delivered late 36 days.
     - Payments has 103.886 values but 99,440 disitnct orders, this is because one order could have multiple payment ways.           (credit and coupon)
 
 - `Reviews` : has 99,224 rows.
-    - **PK**: `review_id`, `order_id` has 99,224 distinct values.
     - `order_id` has 98,673 distinct values, it is FK to `Orders` 1:many.
+    - `Review_id` appears on multiple rows for th different `order_id`.
+    - We have 814 excess duplicates, 764 appear twice while 25 three times (764 + 25*2 = 814) (Id failing to identify)
+    - 547 orders have more than one review (543 twice, 4 three times) 99224 - 98673 = 551 excess rows. (543 + 4*2)  (Nuisness Rule "one review per order" is violated)
+    - (review_id, order_id) IS unique across 99,224 rows, but is NOT a usable PK:
+        1. Not addressable - you must already know the review_id to look anything up.
+        2. Unique by coincidence, not construction - two defects happened not to collide.
+        Contrast (order_id, order_item_id): "line 2 of order X" is nameable in advance,
+        and unique in ANY extract by definition.
+    - => this table has NO working primary key in the source.
+
 
 - `Products` : has 32,951 rows.
     - **PK**: `product_id` has 32,951 distinct values.
+    - `Products` has 610 null values in `product_category_name`, `product_name_lenght`, `product_description_lenght`, `product_photos_qty`
+    - They are all in the same row
+    - There are two untranslated categories that exist in products nut not in the translattion table
+    - {'pc_gamer', 'portateis_cozinha_e_preparadores_de_alimentos'}
 
 - `SELLERS` : has 3,095 rows
     - **PK**: `seller_id` has 3,095 distinct values.
@@ -54,5 +69,68 @@
     - **Decision : Do not use**
 
 - `Categories` : has 71 rows.
+    - **PK**: `product_category_name` 
+
     
 - `Other` : The first purchase date is in Sept 2016 but in 2016 (Sept has 4 rows, Oct has 324, Nov has 0, Dec has 1), From 2017 the    numbers are steady except the last 2 months in 2018 (Sept has 16, Oct has 4) so we will filter "order_purchase_timestamp" from "January 2017" and "September 2018"
+
+
+## ER ##
+
+erDiagram
+    CUSTOMERS ||--|| ORDERS : places
+    ORDERS ||--o{ ORDER_ITEMS : contains
+    ORDERS ||--o{ ORDER_PAYMENTS : "paid by"
+    ORDERS ||--o{ ORDER_REVIEWS : "reviewed in"
+    PRODUCTS ||--o{ ORDER_ITEMS : "appears in"
+    SELLERS ||--o{ ORDER_ITEMS : fulfils
+    CATEGORY_TRANSLATION ||--o{ PRODUCTS : translates
+
+    CUSTOMERS {
+        string customer_id PK
+        string customer_unique_id "the actual person"
+        string customer_city "dirty - do not group by"
+        string customer_state
+    }
+    ORDERS {
+        string order_id PK
+        string customer_id FK
+        string order_status
+        timestamp order_purchase_timestamp
+        timestamp order_approved_at "nullable"
+        timestamp order_delivered_carrier_date "nullable"
+        timestamp order_delivered_customer_date "nullable"
+        date order_estimated_delivery_date
+    }
+    ORDER_ITEMS {
+        string order_id PK_FK
+        int order_item_id PK "line number, not an id"
+        string product_id FK
+        string seller_id FK
+        numeric price
+        numeric freight_value
+    }
+    ORDER_PAYMENTS {
+        string order_id PK_FK
+        int payment_sequential PK "line number"
+        string payment_type
+        int payment_installments
+        numeric payment_value "must be SUMmed per order"
+    }
+    ORDER_REVIEWS {
+        string order_id PK "after dedup"
+        string review_id "not unique in source"
+        int review_score
+    }
+    PRODUCTS {
+        string product_id PK
+        string product_category_name FK "610 nulls"
+    }
+    SELLERS {
+        string seller_id PK
+        string seller_state
+    }
+    CATEGORY_TRANSLATION {
+        string product_category_name PK
+        string product_category_name_english
+    }

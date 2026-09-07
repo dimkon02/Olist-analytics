@@ -55,9 +55,14 @@ print(dupes.head(10))
 dupes = r[r.duplicated("order_id", keep=False)]
 print(dupes.groupby("order_id")["review_score"].nunique().value_counts())
 
+#Used to find how many null are in products
 print(frames["products"].isna().sum())
-#print(set(frames["products"]["product_category_name"].dropna())
-     # - set(frames["categories"]["product_category_name"]))
+#The nulls are in the same rows
+p = frames["products"]
+print(p[p["product_category_name"].isna()]["product_photos_qty"].isna().sum())
+#Used to find how many product_category are in products but not categories
+print(set(frames["products"]["product_category_name"].dropna())
+      - set(frames["categories"]["product_category_name"]))
 
 
 
@@ -101,12 +106,20 @@ orders_no_items = set(orders["order_id"]) - set(items["order_id"])
 print(len(orders_no_items))
 print(orders[orders["order_id"].isin(orders_no_items)]["order_status"].value_counts())
 
-#Trying to understand Reviews
+#Trying to understand the duplicate review_id
 dupes = reviews["review_id"].value_counts()
-dupes = dupes[dupes > 1]
-print(len(dupes))
+dupes = dupes[dupes > 1]  #keeps only the review_id that appear more than once
+print(len(dupes)) 
 
 print(reviews[reviews["review_id"].isin(dupes.index)]
       [["review_id", "order_id"]]
       .sort_values("review_id")
       .head(10))
+
+#shows the duplicate review_id how many times each was shown
+print(dupes.value_counts()) 
+
+dupes_orders = reviews["order_id"].value_counts()
+dupes_orders = dupes_orders[dupes_orders  > 1 ]
+print(len(dupes_orders))
+print(dupes_orders.value_counts())
