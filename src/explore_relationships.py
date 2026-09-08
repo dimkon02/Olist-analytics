@@ -17,6 +17,8 @@ FILES = {
 }
 
 
+
+
 #Function tha is used to iterate through every File, to calculate the number of rows, distinct values in each column,
 #nulls for each column, and a distinct flag if a value is distinct
 def profile_columns(df, name):
@@ -33,6 +35,8 @@ frames = {name: pd.read_csv(f"data/{f}") for name, f in FILES.items()}
 for name, df in frames.items():
     profile_columns(df, name)
 
+for name, df in frames.items():
+    print(name, df.columns.to_list())
 
 #The function can find PK if they  are only for one value, but if the PK is a combination of columns we need to search manually
 items = pd.read_csv("data/olist_order_items_dataset.csv")

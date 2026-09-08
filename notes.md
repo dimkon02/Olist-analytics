@@ -89,6 +89,7 @@ erDiagram
     CUSTOMERS {
         string customer_id PK
         string customer_unique_id "the actual person"
+        string customer_zip_code_prefix 
         string customer_city "dirty - do not group by"
         string customer_state
     }
@@ -107,6 +108,7 @@ erDiagram
         int order_item_id PK "line number, not an id"
         string product_id FK
         string seller_id FK
+        date shipping_limit_date
         numeric price
         numeric freight_value
     }
@@ -121,6 +123,10 @@ erDiagram
         string order_id PK "after dedup"
         string review_id "not unique in source"
         int review_score
+        string review_comment_title             
+        string review_comment_message          
+        string review_creation_date                
+        string review_answer_timestamp
     }
     PRODUCTS {
         string product_id PK
@@ -134,3 +140,9 @@ erDiagram
         string product_category_name PK
         string product_category_name_english
     }
+
+## DECISIONS ##
+
+- Keep `Customers` as one table with `customer_id` the PK.
+Consdiered splitting in two tables, the first being the person, second a per order record, but it would create a table with a single column (id) also since `customer_city` `customer_zip_code_prefix` and `customer_state` would be on the per oreder table, records could differ 
+Cost : `customer_unmique_id` remains as non unique value, in queries have to use `GROUP BY`
