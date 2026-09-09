@@ -146,3 +146,61 @@ erDiagram
 - Keep `Customers` as one table with `customer_id` the PK.
 Consdiered splitting in two tables, the first being the person, second a per order record, but it would create a table with a single column (id) also since `customer_city` `customer_zip_code_prefix` and `customer_state` would be on the per oreder table, records could differ 
 Cost : `customer_unmique_id` remains as non unique value, in queries have to use `GROUP BY`
+
+- `Reviews` dedup : keep the LATEST review per order
+    - ORDER BY `review_creation_date` DESC, tie-broken on `review_answer_timestamp` DESC
+    - Reason : if a customer revised their opinion, the revision is their settled view
+    - Alternative considered : earliest, which measures the unprompted first reaction
+      before any customer service resolution. Also defensible.
+    - COST : 551 rows dropped. Of 547 affected orders, 345 AGREED on score (lossless),
+      202 DISAGREED (real loss)
+    - Nothing destroyed, `stg_order_reviews` still holds all 99,224 rows
+    - README must note the rule shifts average review scores slightly
+
+- `order_reviews` PK is `order_id`, NOT `review_id`
+    - Only valid because the dedup rule creates it. The source has no working key.
+    - `review_id` kept as a plain column for traceability, cannot constrain anything
+      (789 reused across different orders)
+    - Also practical : ON CONFLICT (order_id) needs a unique constraint. No PK means
+      no upsert means no idempotent load.
+
+- `payment_type` = 'not_defined' will be converted to NULL
+    - 3 rows, all with payment_value 0.00
+    - It is missing data written as a category. Keeping it means a phantom 5th
+      payment method appears in every GROUP BY payment_type
+
+- Date window for all time series : >= 2017-01-01 AND < 2018-09-01 (20 complete months)
+    - 2016 is incomplete (Nov has 0 rows, Dec has 1)
+    - 2018-09 has 16 rows and 2018-10 has 4, extract was cut mid-stream
+
+- Money columns use NUMERIC(10,2), never floating point
+    - `price`, `freight_value`, `payment_value`
+
+- Rename `lenght` -> `length` in the modelled `products` table
+    - Source typo stays in staging (staging mirrors the source), fixed deliberately
+      in the modelled layer
+
+- Add the 2 missing translations to `categories_translations` in Phase 5
+    - 'pc_gamer' and 'portateis_cozinha_e_preparadores_de_alimentos'
+    - Must happen BEFORE loading products, or the FK rejects those rows
+
+- `Geo` excluded entirely
+    - No PK, ~53 rows per zip prefix, joining fans out ~53x (99,441 customers -> ~5M rows)
+    - No error is raised, aggregates are silently inflated
+    - State and city already live on customers and sellers
+
+## CONSTRAINTS WANTED BUT BLOCKED ##
+
+True business rules that a few bad rows prevent enforcing:
+
+| Rule                                    | Blocked by                        |
+|-----------------------------------------|-----------------------------------|
+| delivered => has delivery timestamp     | 8 rows                            |
+| every order has >= 1 payment            | 1 row, status DELIVERED           |
+| payment_installments >= 1               | 2 credit card rows with 0         |
+| payment_type is one of the 4 real types | 3 'not_defined' rows              |
+| product_weight_g > 0                    | 4 rows                            |
+
+For each : fix in Phase 5, drop the rows, or weaken the constraint.
+Current choice : weaken (>= 0 rather than > 0) and document, except payment_type
+which becomes NULL.

@@ -40,6 +40,8 @@ SELECT MIN(LENGTH(order_status)), MAX(LENGTH(order_status)) FROM stg_orders;
 -- RETURNS MIN 7, MAX 12
 -- order_status will be TEXT
 
+SELECT DISTINCT(order_status) FROM stg_orders;
+
 SELECT order_purchase_timestamp FROM stg_orders;
 -- order_purchase_timestamp will be TIMESTAMP
 
@@ -222,6 +224,48 @@ SELECT product_id FROM stg_products LIMIT 10;
 -- product_id wil be CHAR(32)
 
 
+SELECT MIN(LENGTH(product_category_name)), MAX(LENGTH(product_category_name)),
+		COUNT(*) FILTER (WHERE product_category_name IS NULL) AS nulls
+FROM stg_products;
+-- MIN : 3 MAX : 46 nulls 610
+
+SELECT product_category_name FROM stg_products;
+
+SELECT product_name_lenght FROM stg_products LIMIT 10;
+SELECT product_description_lenght FROM stg_products LIMIT 10;
+SELECT product_weight_g FROM stg_products LIMIT 10;
+SELECT product_photos_qty FROM stg_products LIMIT 10;
+
+SELECT MIN(product_name_lenght::INTEGER), MAX(product_name_lenght::INTEGER),
+	   MIN(product_description_lenght::INTEGER), MAX(product_description_lenght::INTEGER),
+	   MIN(product_photos_qty::INTEGER), MAX(product_photos_qty::INTEGER)
+FROM stg_products;
+-- product_name_lenght MIN : 5, MAX : 76
+-- product_description_lenght MIN 4, MAX : 3992
+-- product_photos_qty MIN : 1, MAX 20
+
+SELECT MIN(product_weight_g::NUMERIC), MAX(product_weight_g::NUMERIC),
+	   MIN(product_length_cm::NUMERIC), MAX(product_length_cm::NUMERIC),
+	   MIN(product_height_cm::NUMERIC), MAX(product_height_cm::NUMERIC),
+	   MIN(product_width_cm::NUMERIC), MAX(product_width_cm::NUMERIC)
+FROM stg_products;
+-- product_weight_g: MIN 0, MAX 40425
+-- product_length_cm MIN 7, MAX 105
+-- product_height_cm MIN 2 MAX 105
+-- product_width_cm MIN 6 MAX 118
+
+
+SELECT COUNT(*) FROM stg_products
+WHERE product_weight_g LIKE '%.%'
+   OR product_length_cm LIKE '%.%'
+   OR product_height_cm LIKE '%.%'
+   OR product_width_cm LIKE '%.%';
+-- No decimals so all of them are integers
+
+SELECT COUNT(*) FROM stg_products WHERE product_weight_g::NUMERIC = 0;
+-- 4 columns have 0 product weight, anomalies
+
+
 
 			-- FOR SELLERS
 SELECT MIN(LENGTH(seller_id)), MAX((LENGTH(seller_id))) FROM stg_sellers;
@@ -239,3 +283,10 @@ SELECT MIN(LENGTH(seller_city)), MAX((LENGTH(seller_city))) FROM stg_sellers;
 SELECT MIN(LENGTH(seller_state)), MAX((LENGTH(seller_state))) FROM stg_sellers;
 -- MIN: 2, MAX: 2
 -- CHAR
+
+				-- Categories
+SELECT MIN(LENGTH(product_category_name)), MAX(LENGTH(product_category_name)) FROM stg_category_translation;
+-- MIN: 3  MAX: 46  SO TEXT
+
+SELECT MIN(LENGTH(product_category_name_english)), MAX(LENGTH(product_category_name_english)) FROM stg_category_translation;
+-- MIN : 3 MAX : 39 SO TEXT
