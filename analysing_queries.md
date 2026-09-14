@@ -90,3 +90,36 @@ increase over 20 months.
 - Credit card orders average 12% more than boleto (R$163.24 vs R$145.01). Financing is the plausible driver. This sets up the Phase 10 question on instalments vs order value.
 
 - Voucher averages R$65.15, less than half of every other method, because vouchers are partial payments or store credit rather than whole orders. Another reminder that payment_value is per tender, not per order.
+
+
+# 6. Revenue by Month Running Total
+
+- The `running total` variable along with the graph, confirm that the trajectory of the revenue is upwards.
+
+- Total revenue fot the time windows we set is R$13,541,712.78
+
+- More than half of the revenue R$7,385,905,80 was earned after December 2017 meaning the majority of revenue was earned in the last 8 months of the 20 month window.
+
+# 7. Month over Month changes (Absolute and pecentage)
+
+- `Black Friday` revenue spike is evident, there was a 52.1% increase in revenue from October 2017 to November 2017.
+
+- From April 2018 to Augoust 2018, there is an evident plateau in revenue change.
+
+  1. April : 1.4%
+  2. May : 0.0% (R$130.07 difference between the two months, when revenue for each was around R$1,000,000.00)
+  3. June : -13.2% 
+  4. July : 3.5%
+  5. Augoust : -4.6%
+
+- Compared to 2017, where pecentage change varied substancially
+
+  1. February : 105.5%
+  2. March : 51.4%
+  3. May : 40.6%
+  4. November : 52.1% 
+  5. December : -26.4% 
+
+- Black Friday revenue spike is obvious : 52.1% increase from October 2017.
+
+- After Black Friday a sudden drop in revenu was noticed down 26.4%.

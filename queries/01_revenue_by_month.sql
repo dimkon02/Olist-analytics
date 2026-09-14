@@ -7,6 +7,8 @@ WHERE o.order_purchase_timestamp >= '2017-01-01'
 GROUP BY month
 ORDER BY month;
 
+
+-- total revenue
 SELECT SUM(oi.price) AS revenue
 FROM orders o
 JOIN order_items oi ON o.order_id = oi.order_id
