@@ -166,8 +166,7 @@ Cost : `customer_unmique_id` remains as non unique value, in queries have to use
 
 - `payment_type` = 'not_defined' will be converted to NULL
     - 3 rows, all with payment_value 0.00
-    - It is missing data written as a category. Keeping it means a phantom 5th
-      payment method appears in every GROUP BY payment_type
+    - It is missing data written as a category. Keeping it means a phantom 5th payment method appears in every GROUP BY payment_type
 
 - Date window for all time series : >= 2017-01-01 AND < 2018-09-01 (20 complete months)
     - 2016 is incomplete (Nov has 0 rows, Dec has 1)
@@ -175,10 +174,6 @@ Cost : `customer_unmique_id` remains as non unique value, in queries have to use
 
 - Money columns use NUMERIC(10,2), never floating point
     - `price`, `freight_value`, `payment_value`
-
-- Rename `lenght` -> `length` in the modelled `products` table
-    - Source typo stays in staging (staging mirrors the source), fixed deliberately
-      in the modelled layer
 
 - Add the 2 missing translations to `categories_translations` in Phase 5
     - 'pc_gamer' and 'portateis_cozinha_e_preparadores_de_alimentos'
