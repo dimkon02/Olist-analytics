@@ -177,3 +177,27 @@ SCOPE : Applied to all queries:
 
 - On time (4.03) scores below early (4.29). Meeting the promise is
   not as good as beating it.
+
+# 11. Analyze
+
+"QUERY PLAN"
+"Aggregate  (cost=6933.69..6933.70 rows=1 width=8) (actual time=12.330..12.331 rows=1.00 loops=1)"
+"  Buffers: shared hit=3065 read=2359"
+"  ->  Seq Scan on orders  (cost=0.00..6915.61 rows=7230 width=0) (actual time=0.020..12.103 rows=7269.00 loops=1)"
+"        Filter: ((order_purchase_timestamp >= '2018-01-01 00:00:00'::timestamp without time zone) AND (order_purchase_timestamp < '2018-02-01 00:00:00'::timestamp without time zone))"
+"        Rows Removed by Filter: 92172"
+"        Buffers: shared hit=3065 read=2359"
+"Planning Time: 0.089 ms"
+"Execution Time: 12.355 ms"
+
+after index
+
+"Aggregate  (cost=242.97..242.98 rows=1 width=8) (actual time=0.506..0.506 rows=1.00 loops=1)"
+"  Buffers: shared hit=22"
+"  ->  Index Only Scan using idx_orders_purchase_timestamp on orders  (cost=0.29..224.89 rows=7230 width=0) (actual time=0.021..0.304 rows=7269.00 loops=1)"
+"        Index Cond: ((order_purchase_timestamp >= '2018-01-01 00:00:00'::timestamp without time zone) AND (order_purchase_timestamp < '2018-02-01 00:00:00'::timestamp without time zone))"
+"        Heap Fetches: 0"
+"        Index Searches: 1"
+"        Buffers: shared hit=22"
+"Planning Time: 0.078 ms"
+"Execution Time: 0.523 ms"

@@ -28,4 +28,4 @@ SELECT CASE WHEN delay_days < 0 THEN 'Early'
        COUNT(*) FILTER (WHERE review_score <= 2) AS bad_reviews
 FROM delivery
 GROUP BY 1
-ORDER BY MIN(delay_days);
+ORDER BY MIN( );
