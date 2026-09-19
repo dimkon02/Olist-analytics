@@ -84,3 +84,40 @@ python loading_stg.py                          # COPY the CSVs in, prints row co
 psql -d olist_data -f ../sql/02_schema.sql     # create the modelled tables
 python transform.py                            # staging -> model, prints rows affected
 ```
+
+Then run anything in `queries/` against the database.
+
+`loading_stg.py` truncates before loading and `transform.py` upserts on the primary key, so the whole pipeline can be re-run from scratch at any point without duplicating rows.
+
+
+## Data model
+
+Two layers:
+
+- **Staging (`stg_*`)** — one table per CSV, every column `TEXT`. Nothing is cleaned, nothing is rejected, the source typo `lenght` is preserved. Staging is a faithful copy of the extract, so anything dropped downstream can still be recovered.
+- **Modelled** — typed columns, primary keys, foreign keys and check constraints. This is what the analysis queries read.
+
+
+```mermaid
+erDiagram
+    CUSTOMERS ||--|| ORDERS : places
+    ORDERS ||--o{ ORDER_ITEMS : contains
+    ORDERS ||--o{ ORDER_PAYMENTS : "paid by"
+    ORDERS ||--|| ORDER_REVIEWS : "reviewed in"
+    PRODUCTS ||--o{ ORDER_ITEMS : "appears in"
+    SELLERS ||--o{ ORDER_ITEMS : fulfils
+    CATEGORY_TRANSLATION ||--o{ PRODUCTS : translates
+```
+
+| Table | Rows | Primary key |
+|---|---|---|
+| `customers` | 99,441 | `customer_id` |
+| `orders` | 99,441 | `order_id` |
+| `order_items` | 112,650 | `(order_id, order_item_id)` |
+| `order_payments` | 103,886 | `(order_id, payment_sequential)` |
+| `order_reviews` | 98,673 | `order_id` (after dedup) |
+| `products` | 32,951 | `product_id` |
+| `sellers` | 3,095 | `seller_id` |
+| `categories_translations` | 73 | `product_category_name` |
+
+Money is `NUMERIC(10,2)` everywhere — never floating point.
